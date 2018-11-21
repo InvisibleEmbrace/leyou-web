@@ -43,7 +43,7 @@
         </v-toolbar>
         <!--对话框的内容，表单-->
         <v-card-text class="px-5">
-          <BrandForm/>
+          <BrandForm @close="closeWindow"/>
         </v-card-text>
       </v-card>
     </v-dialog>
