@@ -36,14 +36,14 @@
       <v-card>
         <!--对话框的标题-->
         <v-toolbar dense dark color="primary">
-          <v-toolbar-title>新增品牌</v-toolbar-title>
+          <v-toolbar-title>{{isEdit? '修改品牌':'新增品牌'}}</v-toolbar-title>
           <v-spacer/>
           <!--关闭窗口的按钮-->
           <v-btn icon @click="closeWindow"><v-icon>close</v-icon></v-btn>
         </v-toolbar>
         <!--对话框的内容，表单-->
         <v-card-text class="px-5">
-          <BrandForm @close="closeWindow"/>
+          <BrandForm @close="closeWindow" :oldBrand="oldBrand" :isEdit="isEdit"/>
         </v-card-text>
       </v-card>
     </v-dialog>
@@ -70,7 +70,9 @@
           {text: '首字母', align: 'center', value: 'letter'},
           {text: '操作', align: 'center', value: 'id', sortable: false }
         ],
-        show: false
+        show: false,
+        oldBrand: {},
+        isEdit: false // 是否编辑
       }
     },
     methods: {
@@ -135,8 +137,24 @@
           this.loading = false; // 加载完成
         })
       },
-      addBrand() {  // 打开窗口
+      addBrand() {
+        this.isEdit = false
         this.show = true
+        // 把oldBrand变为null
+        this.oldBrand = null;
+      },
+      editItem(oldBrand) {
+        // 根据商品信息查询分类进行回显（分类较为特殊）
+        this.$http.get("/item/category/bid/" + oldBrand.id)
+          .then(({data}) => {
+            this.isEdit = true
+            // 控制弹窗可见：
+            this.show = true;
+            // 获取要编辑的brand
+            this.oldBrand = oldBrand;
+            // 回显商品分类
+            this.oldBrand.categories = data;
+          })
       },
       closeWindow() {   // 关闭窗口
         this.show = false

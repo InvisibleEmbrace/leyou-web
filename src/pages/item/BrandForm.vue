@@ -35,6 +35,13 @@
   import VUpload from '../../components/form/Upload'
   export default {
     name: "BrandForm",
+    props: {
+      oldBrand:　Object,
+      isEdit: {
+        type: Boolean,
+        default: false
+      }
+    },
     data() {
       return {
         valid: false, // 表单校验结果标记
@@ -56,7 +63,7 @@
     },
     methods: {
       submit(){
-        // 1、表单校验
+        /*// 1、表单校验
         if (this.$refs.BrandForm.validate()) {
           // 2、定义一个请求参数对象，通过解构表达式来获取brand中的属性
           const {categories ,letter ,...params} = this.brand;
@@ -75,6 +82,25 @@
             .catch(() => {
               this.$message.error("保存失败！");
             });
+        }*/
+        if (this.$refs.BrandForm.validate()) {
+          // 2、定义一个请求参数对象，通过解构表达式来获取brand中的属性
+          const {categories ,letter ,...params} = this.brand;
+          // 3、数据库中只要保存分类的id即可，因此我们对categories的值进行处理,只保留id，并转为字符串
+          params.cids = categories.map(c => c.id).join(",");
+          // 4、将字母都处理为大写
+          params.letter = letter.toUpperCase();
+          // 5、提交数据
+          this.$http({
+            method: this.isEdit ? 'put' : 'post',
+            url: '/item/brand',
+            data: this.$qs.stringify(params)
+          }).then(() => {
+            this.$emit('close');
+            this.$message.success("保存成功");
+          }).catch(() => {
+            this.$message.error("保存失败");
+          });
         }
       },
       clear(){
@@ -82,6 +108,25 @@
         this.$refs.BrandForm.reset();
         // 需要手动清空商品分类
         this.categories = [];
+      }
+    },
+    watch: {
+      oldBrand: {// 监控oldBrand的变化
+        handler(val) {
+          if(val){
+            // 注意不要直接复制，否则这边的修改会影响到父组件的数据，copy属性即可
+            this.brand =  Object.deepCopy(val)
+          }else{
+            // 为空，初始化brand
+            this.brand = {
+              name: '',
+              letter: '',
+              image: '',
+              categories: [],
+            }
+          }
+        },
+        deep: true   // deep为true，会监视pagination的属性及属性中的对象属性变化
       }
     },
     components: {
