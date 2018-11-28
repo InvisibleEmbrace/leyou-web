@@ -156,6 +156,15 @@
             this.oldBrand.categories = data;
           })
       },
+      deleteItem(brand) {
+        this.$http.delete("/item/brand/bid/" + brand.id)
+          .then(resp => {
+            this.$message.success("删除成功")
+          })
+          .catch(() => {
+            this.$message.error("删除失败")
+          })
+      },
       closeWindow() {   // 关闭窗口
         this.show = false
       }
