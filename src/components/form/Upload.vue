@@ -1,4 +1,4 @@
-<template>
+n<template>
   <div>
     <el-upload v-if="multiple"
                :action="baseUrl + url"
