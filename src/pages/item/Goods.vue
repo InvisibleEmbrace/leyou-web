@@ -28,6 +28,7 @@
       </v-flex>
     </v-toolbar>
     <v-divider/>
+
     <v-data-table
       :headers="headers"
       :items="goodsList"

@@ -160,6 +160,7 @@
         this.$http.delete("/item/brand/bid/" + brand.id)
           .then(resp => {
             this.$message.success("删除成功")
+            this.getDataFromServer();
           })
           .catch(() => {
             this.$message.error("删除失败")

@@ -59,16 +59,18 @@
       <!--3、规格参数-->
       <v-stepper-content step="3">
         <v-flex class="xs10 mx-auto px-3">
-          <!--遍历整个规格参数-->
-          <v-card class="my-2">
-            <v-container grid-list-md fluid>
-            <v-layout wrap row justify-space-between class="px-5">
-              <v-flex xs12 sm5 v-for="param in specs" :key="param.name">
-                <v-text-field :label="param.name" v-model="param.v" :suffix="param.unit || ''"
-                 />
-              </v-flex>
-            </v-layout>
-          </v-container>
+          <!--遍历整个规格参数，获取每一组-->
+          <v-card v-for="spec in specs" :key="spec.group" class="my-2">
+            <!--组名称
+            <v-card-title class="subheading">{{spec.group}}</v-card-title>
+            <!--遍历组中的每个属性，并判断是否是全局属性，不是则不显示-->
+            <v-card-text v-for="param in spec.params" :key="param.k" v-if="param.global" class="px-5">
+              <!--判断是否有可选项，如果没有，则显示文本框。还要判断是否是数值类型，如果是把unit显示到后缀-->
+              <v-text-field v-if="param.options.length <= 0"
+                            :label="param.k" v-model="param.v" :suffix="param.unit || ''"/>
+              <!--否则，显示下拉选项-->
+              <v-select v-else :label="param.k" v-model="param.v" :items="param.options"/>
+            </v-card-text>
           </v-card>
         </v-flex>
       </v-stepper-content>
@@ -172,7 +174,7 @@ export default {
       if(!this.$refs.basic.validate){
         this.$message.error("请先完成表单内容！");
       }
-      // 先处理goods，用结构表达式接收,除了categories外，都接收到goodsParams中
+      // 先处理goods，用结构表达  式接收,除了categories外，都接收到goodsParams中
       const {
         categories: [{ id: cid1 }, { id: cid2 }, { id: cid3 }],
         ...goodsParams
@@ -283,36 +285,23 @@ export default {
               this.brandOptions = data;
             });
           // 根据分类查询规格参数
-          this.$http
-            .get("/item/spec/params?cid=" + this.goods.categories[2].id)
-            .then(({ data }) => {
-              let specs = [];
-              let template = [];
-              if (this.isEdit){
-                specs = JSON.parse(this.goods.spuDetail.genericSpec);
-                template = JSON.parse(this.goods.spuDetail.specialSpec);
-              }
+          this.$http.get("/item/spec/" + this.goods.categories[2].id)
+            .then(({data}) => {
+              // 保存全部规格
+              this.specs = data;
               // 对特有规格进行筛选
-              const arr1 = [];
-              const arr2 = [];
-              data.forEach(({id, name,generic, numeric, unit }) => {
-                if(generic){
-                  const o = { id, name, numeric, unit};
-                  if(this.isEdit){
-                    o.v = specs[id];
+              const temp = [];
+              data.forEach(({params}) => {
+                params.forEach(({k, options, global}) => {
+                  if (!global) {
+                    temp.push({
+                      k, options,selected:[]
+                    })
                   }
-                  arr1.push(o)
-                }else{
-                  const o = {id, name, options:[]};
-                  if(this.isEdit){
-                    o.options = template[id];
-                  }
-                  arr2.push(o)
-                }
-              });
-              this.specs = arr1;// 通用规格
-              this.specialSpecs = arr2;// 特有规格
-            });
+                })
+              })
+              this.specialSpecs = temp;
+            })
         }
       }
     }
